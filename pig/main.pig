@@ -62,11 +62,7 @@ SecurityDelay: int,
 LateAircraftDelay: int
 );
 
-REGISTER /home/thomas/workspace/learn_hadoop/project_data/src/flightNumFilter.jar;
-
-criteria = FOREACH data GENERATE Month;
-filtered = FILTER data BY FilteredFlightNumber(criteria.$0);
-projectedData = FOREACH filtered GENERATE $groupBy, $independentVariable , $dependentVariable;
+projectedData = FOREACH data GENERATE $groupBy, $independentVariable , $dependentVariable;
 groupedData = GROUP projectedData by $groupBy;
 correlation = FOREACH groupedData GENERATE group, SUM( projectedData.$independentVariable);
 DUMP correlation;
