@@ -62,7 +62,30 @@ SecurityDelay: int,
 LateAircraftDelay: int
 );
 
-projectedData = FOREACH data GENERATE $groupBy, $independentVariable , $dependentVariable;
-groupedData = GROUP projectedData by $groupBy;
-correlation = FOREACH groupedData GENERATE group, SUM( projectedData.$independentVariable);
-DUMP correlation;
+p_data = FOREACH data GENERATE $groupBy,
+								 $independentVariable as x, 
+								 $dependentVariable as y,
+						         $independentVariable * $independentVariable as x_2,
+						         $dependentVariable * $dependentVariable as y_2,
+						         $dependentVariable * $independentVariable as x_y;
+
+
+p_data_group = GROUP p_data BY $groupBy;
+
+
+
+aggregated_data        = FOREACH p_data_group GENERATE group,
+                                         COUNT(p_data) as n,
+                                         SUM( p_data.x) as sum_x,
+                                         SUM( p_data.y) as sum_y,
+                                         SUM( p_data.x_2) as sum_x_2,
+                                         SUM( p_data.y_2) as sum_y_2,
+                                         SUM( p_data.x_y) as sum_x_y;
+
+
+
+pearson_corr        = FOREACH aggregated_data GENERATE group,
+							 ((n * sum_x_y - sum_x * sum_y)/ 
+							 SQRT((n * sum_x_2 - sum_x*sum_x)
+							     *(n * sum_y_2 - sum_y*sum_y))) as r;
+DUMP pearson_corr;
